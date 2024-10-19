@@ -76,28 +76,25 @@ def build_docker_image(
         raise RuntimeError(msg)
 
 
-def get_dockerfile(py_packages: list[str]) -> str:
+def get_dockerfile(additional_python_packages: list[str]) -> str:
     try:
         additional_packages = " ".join(
-            py_packages + DEFAULT_PYTHON_PACKAGES,
+            additional_python_packages + DEFAULT_PYTHON_PACKAGES,
         )
 
-        content = DOCKER_MANIFEST_MANIFEST_TEMPLATE.substitute(
+        return DOCKER_MANIFEST_MANIFEST_TEMPLATE.substitute(
             additional_packages=additional_packages,
         )
 
-        print(content)
-
-        return content
     except RuntimeError as e:
         print(f"Error reading Dockerfile: {e!s}")
         return ""
 
 
-def ensure_docker_image(py_packages: list[str]) -> None:
+def ensure_docker_image(additional_python_packages: list[str]) -> None:
     if not check_docker_image():
         print("Ansible Toolbox Docker image not found. Building...")
-        dockerfile_content = get_dockerfile(py_packages)
+        dockerfile_content = get_dockerfile(additional_python_packages)
 
         if not dockerfile_content:
             msg = "Failed to read Dockerfile from package"
@@ -219,8 +216,8 @@ def parse_arguments() -> argparse.ArgumentParser:
         help="Run in interactive mode",
     )
     parser.add_argument(
-        "--at-py-package",
-        dest="py_packages",
+        "--at-add-py-package",
+        dest="additional_python_packages",
         action="append",
         default=[],
         help="Additional python packages to add to the toolbox",
@@ -266,7 +263,7 @@ def main() -> None:
         if not args.command:
             parser.error("the following arguments are required: command")
 
-        ensure_docker_image(args.py_packages)
+        ensure_docker_image(args.additional_python_packages)
 
         docker_args = prepare_arguments(
             args.command,
