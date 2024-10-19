@@ -7,12 +7,11 @@ default:
 install-dev:
     pdm install -d
 
-# Run tests
-test:
-    pdm run pytest tests
+unit-test:
+    pdm run pytest tests/unit
 
-build: test
-    pdm run pyinstaller {{package_name}}.spec
+build: unit-test
+    pdm build
 
 clean:
     rm -rf build dist
@@ -25,9 +24,6 @@ activate-venv:
     @echo "PDM manages virtual environments automatically."
     @echo "Use 'pdm run <command>' to run commands in the virtual environment."
     @echo "Or use 'pdm shell' to activate the environment in your current shell."
-
-build-docker:
-    docker build -t ansible-toolbox:latest .
 
 run *args:
     pdm run {{binary_name}} {{args}}

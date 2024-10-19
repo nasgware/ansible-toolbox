@@ -7,10 +7,36 @@ import subprocess
 import sys
 import tempfile
 from pathlib import Path
-
-import pkg_resources  # type: ignore  # noqa: PGH003
+from string import Template
 
 DOCKER_BIN = shutil.which("docker")
+
+
+class CustomTemplate(Template):
+    delimiter = "%"
+
+
+DOCKER_MANIFEST_MANIFEST_TEMPLATE = CustomTemplate("""
+FROM docker.io/alpine:latest
+
+ENV PYTHONUNBUFFERED=1 \\
+    PYTHONIOENCODING=UTF-8 \\
+    PIP_NO_CACHE_DIR=yes \\
+    VIRTUAL_ENV=/install/.venv \\
+    PATH="/install/.venv/bin:$PATH"
+
+RUN apk add --no-cache \\
+    ca-certificates \\
+    openssh \\
+    git \\
+    python3 \\
+    py3-pip \\
+    && python3 -m venv $VIRTUAL_ENV \\
+    && pip install --no-cache-dir ansible %additional_packages \\
+    && rm -rf /tmp/* /var/cache/apk/* /root/.cache
+""")
+
+DEFAULT_PYTHON_PACKAGES = ["requests==2.32.3", "docker==7.1.0 "]
 
 
 def check_docker_image(image_name: str = "ansible-toolbox:latest") -> bool:
@@ -50,21 +76,28 @@ def build_docker_image(
         raise RuntimeError(msg)
 
 
-def get_embedded_dockerfile() -> str:
+def get_dockerfile(py_packages: list[str]) -> str:
     try:
-        return pkg_resources.resource_string(
-            "ansible_toolbox",
-            "Dockerfile",
-        ).decode("utf-8")
-    except Exception as e:
+        additional_packages = " ".join(
+            py_packages + DEFAULT_PYTHON_PACKAGES,
+        )
+
+        content = DOCKER_MANIFEST_MANIFEST_TEMPLATE.substitute(
+            additional_packages=additional_packages,
+        )
+
+        print(content)
+
+        return content
+    except RuntimeError as e:
         print(f"Error reading Dockerfile: {e!s}")
         return ""
 
 
-def ensure_docker_image() -> None:
+def ensure_docker_image(py_packages: list[str]) -> None:
     if not check_docker_image():
         print("Ansible Toolbox Docker image not found. Building...")
-        dockerfile_content = get_embedded_dockerfile()
+        dockerfile_content = get_dockerfile(py_packages)
 
         if not dockerfile_content:
             msg = "Failed to read Dockerfile from package"
@@ -84,7 +117,7 @@ def ensure_docker_image() -> None:
         print("Ansible Toolbox Docker image built successfully.")
 
 
-def execute(arguments: list[str], interactive: bool = False) -> None:
+def execute(arguments: list[str]) -> None:
     assert DOCKER_BIN is not None
     print("Executing Docker command:", " ".join(arguments))
     os.execvp(DOCKER_BIN, arguments)  # noqa: S606
@@ -107,9 +140,10 @@ def translate_path(path: str) -> str:
 
 def prepare_arguments(
     arguments: list[str],
+    *,
     interactive: bool,
     extra_volumes: list[str],
-    extra_env: list[str],
+    extra_envs: list[str],
 ) -> list[str]:
     docker_cmd = ["docker", "run"]
 
@@ -141,12 +175,10 @@ def prepare_arguments(
     ]
     # fmt: on
 
-    # Add extra volumes
     for volume in extra_volumes:
         docker_cmd += ["-v", volume]
 
-    # Add extra environment variables
-    for env in extra_env:
+    for env in extra_envs:
         docker_cmd += ["-e", env]
 
     docker_cmd += ["ansible-toolbox:latest", "/bin/sh"]
@@ -164,39 +196,53 @@ def prepare_arguments(
     return docker_cmd
 
 
-def parse_arguments() -> argparse.Namespace:
+def parse_arguments() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description="Run Ansible commands in a Docker container.",
+        add_help=False,
+    )
+    parser.add_argument(
+        "--at-help",
+        dest="help",
+        action="store_true",
+        help="Show this help message and exit",
     )
     parser.add_argument(
         "command",
-        nargs="+",
+        nargs="*",  # Changed from '+' to '*' to allow empty command when --at-help is used
         help="The Ansible command to run",
     )
     parser.add_argument(
-        "-i",
-        "--interactive",
+        "--at-i",
+        dest="interactive",
         action="store_true",
         help="Run in interactive mode",
     )
     parser.add_argument(
-        "-v",
-        "--volume",
+        "--at-py-package",
+        dest="py_packages",
+        action="append",
+        default=[],
+        help="Additional python packages to add to the toolbox",
+    )
+    parser.add_argument(
+        "--at-volume",
+        dest="volumes",
         action="append",
         default=[],
         help="Additional volumes to mount",
     )
     parser.add_argument(
-        "-e",
-        "--env",
+        "--at-env",
+        dest="envs",
         action="append",
         default=[],
         help="Additional environment variables",
     )
-    return parser.parse_args()
+    return parser
 
 
-if __name__ == "__main__":
+def main() -> None:
     if DOCKER_BIN is None:
         print(
             "Error: Docker is not installed or not in PATH",
@@ -205,15 +251,30 @@ if __name__ == "__main__":
         sys.exit(1)
 
     try:
-        ensure_docker_image()
-        args = parse_arguments()
+        parser = parse_arguments()
+
+        # Parse known args first to check for --at-help
+        known_args, _ = parser.parse_known_args()
+
+        if known_args.help:
+            parser.print_help()
+            sys.exit(0)
+
+        # If --at-help is not present, parse all args
+        args = parser.parse_args()
+
+        if not args.command:
+            parser.error("the following arguments are required: command")
+
+        ensure_docker_image(args.py_packages)
 
         docker_args = prepare_arguments(
             args.command,
-            args.interactive,
-            args.volume,
-            args.env,
+            interactive=args.interactive,
+            extra_volumes=args.volumes,
+            extra_envs=args.envs,
         )
+
         execute(docker_args)
 
     except ValueError as e:
@@ -221,5 +282,12 @@ if __name__ == "__main__":
         sys.exit(1)
 
     except Exception as e:  # noqa: BLE001
+        import traceback
+
+        traceback.print_exc()
         print(f"An unexpected error occurred: {e!s}", file=sys.stderr)
         sys.exit(1)
+
+
+if __name__ == "__main__":
+    main()

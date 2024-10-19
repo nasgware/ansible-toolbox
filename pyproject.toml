@@ -8,6 +8,9 @@ requires-python = ">=3.11"
 readme = "README.md"
 license = { text = "MIT" }
 
+[project.scripts]
+at = "ansible_toolbox.__main__:main"
+
 [build-system]
 requires = ["pdm-backend"]
 build-backend = "pdm.backend"
@@ -22,3 +25,6 @@ dev = [
 ]
 [tool.pdm.build]
 includes = ["ansible_toolbox/", "ansible_toolbox/Dockerfile"]
+
+[tool.pdm.scripts]
+at = { call = "ansible_toolbox.__main__:main" }
