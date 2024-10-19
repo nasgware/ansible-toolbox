@@ -42,7 +42,7 @@ DEFAULT_PYTHON_PACKAGES = ["requests==2.32.3", "docker==7.1.0 "]
 def check_docker_image(image_name: str = "ansible-toolbox:latest") -> bool:
     assert DOCKER_BIN is not None
 
-    result = subprocess.run(
+    result = subprocess.run(  # noqa: S603
         [DOCKER_BIN, "image", "inspect", image_name],
         stdout=subprocess.DEVNULL,
         stderr=subprocess.DEVNULL,
@@ -61,7 +61,7 @@ def build_docker_image(
     print(f"Building Docker image {image_name}...")
 
     # fmt: off
-    result = subprocess.run(
+    result = subprocess.run(  # noqa: S603
         [
             DOCKER_BIN, "build",
             "-t", image_name,
@@ -92,26 +92,22 @@ def get_dockerfile(additional_python_packages: list[str]) -> str:
 
 
 def ensure_docker_image(additional_python_packages: list[str]) -> None:
-    if not check_docker_image():
-        print("Ansible Toolbox Docker image not found. Building...")
-        dockerfile_content = get_dockerfile(additional_python_packages)
+    print("Ansible Toolbox Docker image not found. Building...")
+    dockerfile_content = get_dockerfile(additional_python_packages)
 
-        if not dockerfile_content:
-            msg = "Failed to read Dockerfile from package"
-            raise RuntimeError(msg)
+    if not dockerfile_content:
+        msg = "Failed to read Dockerfile from package"
+        raise RuntimeError(msg)
 
-        with tempfile.NamedTemporaryFile(
-            mode="w",
-            delete=False,
-            suffix=".dockerfile",
-        ) as tmp:
-            tmp.write(dockerfile_content)
-            tmp.flush()
-            build_docker_image(tmp.name)
+    with tempfile.NamedTemporaryFile(
+        mode="w",
+        suffix=".dockerfile",
+    ) as tmp:
+        tmp.write(dockerfile_content)
+        tmp.flush()
+        build_docker_image(tmp.name)
 
-        os.unlink(tmp.name)
-
-        print("Ansible Toolbox Docker image built successfully.")
+    print("Ansible Toolbox Docker image built successfully.")
 
 
 def execute(arguments: list[str]) -> None:
@@ -121,18 +117,18 @@ def execute(arguments: list[str]) -> None:
 
 
 def translate_path(path: str) -> str:
-    abs_path = os.path.abspath(path)
-    workspace_path = os.path.abspath(os.getcwd())
+    abs_path = Path(path).resolve()
+    workspace_path = Path.cwd().resolve()
 
-    if abs_path.startswith(workspace_path):
-        return f"/workspace{abs_path[len(workspace_path):]}"
-
-    msg = (
-        f"Path {path} is outside the current workspace and cannot be "
-        "accessed in the container."
-    )
-
-    raise ValueError(msg)
+    try:
+        relative_path = abs_path.relative_to(workspace_path)
+        return str(Path("/workspace") / relative_path)
+    except ValueError as e:
+        msg = (
+            f"Path {path} is outside the current workspace and cannot be "
+            "accessed in the container."
+        )
+        raise ValueError(msg) from e
 
 
 def prepare_arguments(
@@ -161,7 +157,7 @@ def prepare_arguments(
         "-v", "/etc/group:/etc/group:ro,z",
         "-v", "/tmp:/tmp:z",
         "-v", "/var/tmp:/var/tmp:z",
-        "-v", f"{os.getcwd()}:/workspace:ro,z",
+        "-v", f"{Path.cwd()}:/workspace:ro,z",
         "-e", "HOME=/tmp",
         "-e", "TERM=xterm-256color",
         "-e", "ANSIBLE_LOCAL_TEMP=/tmp",
@@ -206,7 +202,7 @@ def parse_arguments() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "command",
-        nargs="*",  # Changed from '+' to '*' to allow empty command when --at-help is used
+        nargs="*",
         help="The Ansible command to run",
     )
     parser.add_argument(
@@ -250,20 +246,19 @@ def main() -> None:
     try:
         parser = parse_arguments()
 
-        # Parse known args first to check for --at-help
         known_args, _ = parser.parse_known_args()
 
         if known_args.help:
             parser.print_help()
             sys.exit(0)
 
-        # If --at-help is not present, parse all args
         args = parser.parse_args()
 
         if not args.command:
             parser.error("the following arguments are required: command")
 
-        ensure_docker_image(args.additional_python_packages)
+        if not check_docker_image():
+            ensure_docker_image(args.additional_python_packages)
 
         docker_args = prepare_arguments(
             args.command,
