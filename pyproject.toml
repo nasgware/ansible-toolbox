@@ -2,7 +2,8 @@
 name = "ansible-toolbox"
 version = "0.1.0"
 description = "Run Anisble Playbooks from a docker container"
-authors = [{ name = "Nuno Goncalves", email = "nasgoncalves@outlook.com" }]
+authors = [{ name = "Nuno Goncalves", email = "nunog@nasgware.com" }]
+maintainers = [{ name = "Nuno Goncalves", email = "nunog@nasgware.com" }]
 dependencies = []
 requires-python = ">=3.8"
 readme = "README.md"
