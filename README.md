@@ -1,4 +1,7 @@
 # ansible-toolbox
 
-Simple ansible-playbook runner to execute playbooks in a docker container, promoting isolation, containing all dependencies you need to run the playbbook, easy to use, reproduce, test, integrate in CI/CD procedures.
+## What is this?
 
+Simple ansible-playbook runner to execute playbooks in a (docker) container, easy to use, promoting isolation, portability, reproducibility, optimal to integrate in CI/CD pipelines.
+
+## How to use?
