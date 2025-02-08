@@ -1,0 +1,66 @@
+---
+name: Type-Check
+
+on:
+  pull_request:
+    branches: [ "main" ]
+    paths:
+      - 'tests/**'
+      - 'src/ansible_toolbox/**'
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency: 
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  type-check:
+    name: Type-Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Cache Just installation
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.just
+            /usr/local/bin/just
+          key: ${{ runner.os }}-just-${{ hashFiles('**/justfile') }}-1.39.0
+
+      - name: Cache PDM dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            .venv/
+            __pypackages__/
+            .pdm.toml
+          key: ${{ runner.os }}-pdm-${{ hashFiles('pdm.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-pdm-
+
+      - name: Setup Just
+        uses: extractions/setup-just@v2
+        with:
+          just-version: '1.39.0'
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.8"
+
+      - name: Setup PDM
+        uses: pdm-project/setup-pdm@v4
+        with:
+          python-version: "3.8"
+
+      - name: Run Mypy
+        run: |
+          just setup-dev 
+          just type-check
