@@ -1,0 +1,76 @@
+---
+name: Test Suite Template
+
+on:
+  workflow_call:
+    inputs:
+      os-flavors:
+        description: "List of OS versions to test"
+        type: string
+        required: true
+
+      python-versions:
+        description: "List of Python versions to test"
+        type: string
+        required: true
+
+jobs:
+  test-suite:
+    name: Test Suite (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}-${{ matrix.os }}
+      cancel-in-progress: true
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: ${{ fromJSON(inputs.os-flavors) }}
+        python-version: ${{ fromJSON(inputs.python-versions) }}
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Cache Just installation
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.just
+            /usr/local/bin/just
+          key: ${{ runner.os }}-just-${{ hashFiles('**/justfile') }}-1.39.0
+
+      - name: Cache PDM dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            .venv/
+            __pypackages__/
+            .pdm.toml
+          key: ${{ runner.os }}-pdm-${{ hashFiles('pdm.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-pdm-
+
+      - name: Setup Just
+        uses: extractions/setup-just@v2
+        with:
+          just-version: '1.39.0'
+      
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Setup PDM
+        uses: pdm-project/setup-pdm@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Run Tests
+        run: |
+          just setup-dev
+          just test
+        env:
+          PYTHONWARNINGS: ignore

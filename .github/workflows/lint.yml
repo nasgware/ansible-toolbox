@@ -1,0 +1,46 @@
+---
+name: Lint
+
+on:
+  pull_request:
+    branches: [ "main" ]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency: 
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Cache Just installation
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.just
+            /usr/local/bin/just
+          key: ${{ runner.os }}-just-${{ hashFiles('**/justfile') }}-1.39.0
+
+      - name: Setup Just
+        uses: extractions/setup-just@v2
+        with:
+          just-version: '1.39.0'
+
+      - name: Setup Ruff
+        uses: astral-sh/ruff-action@v3
+        with:
+          version: 0.8.5
+
+      - name: Run Linters
+        run: |
+          just lint
