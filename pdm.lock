@@ -5,7 +5,7 @@
 groups = ["default", "dev"]
 strategy = ["cross_platform"]
 lock_version = "4.4"
-content_hash = "sha256:0605efd086b2b62ef15d0d3c4a08fb4d91615a4c9d969a2d6bd5babe8ded0572"
+content_hash = "sha256:ec3881ef3008f80e4c2f4362493df950f714f210d1a6ab8174dc73bbba289389"
 
 [[package]]
 name = "colorama"
@@ -188,6 +188,16 @@ summary = "plugin and hook calling mechanisms for python"
 files = [
     {file = "pluggy-1.5.0-py3-none-any.whl", hash = "sha256:44e1ad92c8ca002de6377e165f3e0f1be63266ab4d554740532335b9d75ea669"},
     {file = "pluggy-1.5.0.tar.gz", hash = "sha256:2cffa88e94fdc978c4c574f15f9e59b7f4201d439195c3715ca9e2486f1d0cf1"},
+]
+
+[[package]]
+name = "pyclean"
+version = "3.1.0"
+requires_python = ">=3.5"
+summary = "Pure Python cross-platform pyclean. Clean up your Python bytecode."
+files = [
+    {file = "pyclean-3.1.0-py3-none-any.whl", hash = "sha256:46652f7416816924cab565cd045d0c341237aced0368a3727d66b5192c16728c"},
+    {file = "pyclean-3.1.0.tar.gz", hash = "sha256:d23fa900558696e08c79401c79f242fe6f7f38fd58ccd035f875a01c5bc7a6fc"},
 ]
 
 [[package]]

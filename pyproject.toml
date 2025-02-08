@@ -22,6 +22,7 @@ dev = [
     "pyinstall>=0.1.4",
     "ruff>=0.7.0",
     "mypy>=1.12.0",
+    "pyclean>=3.1.0",
 ]
 [tool.pdm.build]
 includes = ["ansible_toolbox/", "ansible_toolbox/Dockerfile"]
