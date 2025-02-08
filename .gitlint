@@ -1,0 +1,5 @@
+[general]
+ignore=merge, rebase
+
+[title-match-regex]
+regex=^(feat|fix|docs|style|refactor|perf|test|chore)(\(\w+\))?: .+

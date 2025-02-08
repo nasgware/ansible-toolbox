@@ -31,7 +31,7 @@ exclude = [
 line-length = 75
 indent-width = 4
 
-target-version = "py38"
+target-version = "py39"
 
 [lint]
 # Enable Pyflakes (`F`) and a subset of the pycodestyle (`E`)  codes by default.
@@ -49,6 +49,7 @@ ignore = [
     "T201",
     "S101",
     "S108",
+    "D104",
 ]
 
 # Allow fix for all enabled rules (when `--fix`) is provided.
