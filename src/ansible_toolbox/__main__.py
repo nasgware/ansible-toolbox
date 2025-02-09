@@ -1,33 +1,9 @@
-"""
-MIT License.
-
-Copyright (c) 2025 Nuno Goncalves <nunog@nasgware.com>
-
-Permission is hereby granted, free of charge, to any person obtaining a
-copy of this software and associated documentation files (the "Software"),
-to deal in the Software without restriction, including without limitation
-the rights to use, copy, modify, merge, publish, distribute, sublicense,
-and/or sell copies of the Software, and to permit persons to whom the
-Software is furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in
-all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-DEALINGS IN THE SOFTWARE.
-"""
-
 from __future__ import annotations
 
 import argparse
 import os
 import shutil
-import subprocess  # noqa: S404
+import subprocess
 import sys
 import tempfile
 import traceback
@@ -64,7 +40,9 @@ RUN apk add --no-cache \\
 DEFAULT_PYTHON_PACKAGES = ["requests==2.32.3", "docker==7.1.0 "]
 
 
-def check_docker_image(image_name: str = "ansible-toolbox:latest") -> bool:
+def is_docker_image_present(
+    image_name: str = "ansible-toolbox:latest",
+) -> bool:
     assert DOCKER_BIN is not None
 
     result = subprocess.run(  # noqa: S603
@@ -111,18 +89,14 @@ def get_dockerfile(additional_python_packages: list[str]) -> str:
             additional_packages=additional_packages,
         )
 
-    except RuntimeError as e:
-        print(f"Error reading Dockerfile: {e!s}")
-        return ""
+    except ValueError as e:
+        msg = "Failed to generate the Dockerfile"
+        raise RuntimeError(msg) from e
 
 
 def ensure_docker_image(additional_python_packages: list[str]) -> None:
     print("Ansible Toolbox Docker image not found. Building...")
     dockerfile_content = get_dockerfile(additional_python_packages)
-
-    if not dockerfile_content:
-        msg = "Failed to read Dockerfile from package"
-        raise RuntimeError(msg)
 
     with tempfile.NamedTemporaryFile(
         mode="w",
@@ -133,7 +107,7 @@ def ensure_docker_image(additional_python_packages: list[str]) -> None:
         tmp.flush()
         build_docker_image(tmp.name)
 
-    print("Ansible Toolbox Docker image built successfully.")
+    print("Docker image built successfully.")
 
 
 def execute(arguments: list[str]) -> None:
@@ -151,8 +125,8 @@ def translate_path(path: str) -> str:
         return str(Path("/workspace") / relative_path)
     except ValueError as e:
         msg = (
-            f"Path {path} is outside the current workspace and cannot be "
-            "accessed in the container."
+            f"Path {path!s} is outside the current workspace and cannot "
+            "be accessed in the container."
         )
         raise ValueError(msg) from e
 
@@ -164,7 +138,8 @@ def prepare_arguments(
     extra_volumes: list[str],
     extra_envs: list[str],
 ) -> list[str]:
-    docker_cmd = ["docker", "run"]
+    assert DOCKER_BIN is not None
+    docker_cmd = [DOCKER_BIN, "run"]
 
     if interactive:
         docker_cmd.append("-it")
@@ -263,47 +238,42 @@ def parse_arguments() -> argparse.ArgumentParser:
 
 def main() -> None:
     if DOCKER_BIN is None:
-        print(
-            "Error: Docker is not installed or not in PATH",
-            file=sys.stderr,
-        )
-        sys.exit(1)
+        msg = "Docker is not installed or is not in $PATH"
+        raise RuntimeError(msg)
 
+    parser = parse_arguments()
+
+    known_args, _ = parser.parse_known_args()
+
+    if known_args.help:
+        parser.print_help()
+        return
+
+    args = parser.parse_args()
+
+    if not args.command:
+        msg = "Please provide the `command` to be executed"
+        raise ValueError(msg)
+
+    if not is_docker_image_present():
+        ensure_docker_image(args.additional_python_packages)
+
+    docker_args = prepare_arguments(
+        args.command,
+        interactive=args.interactive,
+        extra_volumes=args.volumes,
+        extra_envs=args.envs,
+    )
+
+    execute(docker_args)
+
+
+if __name__ == "__main__":
     try:
-        parser = parse_arguments()
-
-        known_args, _ = parser.parse_known_args()
-
-        if known_args.help:
-            parser.print_help()
-            sys.exit(0)
-
-        args = parser.parse_args()
-
-        if not args.command:
-            parser.error("the following arguments are required: command")
-
-        if not check_docker_image():
-            ensure_docker_image(args.additional_python_packages)
-
-        docker_args = prepare_arguments(
-            args.command,
-            interactive=args.interactive,
-            extra_volumes=args.volumes,
-            extra_envs=args.envs,
-        )
-
-        execute(docker_args)
-
-    except ValueError as e:
-        print(f"Error: {e!s}", file=sys.stderr)
-        sys.exit(1)
+        main()
+        sys.exit(0)
 
     except Exception as e:  # noqa: BLE001
         traceback.print_exc()
         print(f"An unexpected error occurred: {e!s}", file=sys.stderr)
         sys.exit(1)
-
-
-if __name__ == "__main__":
-    main()

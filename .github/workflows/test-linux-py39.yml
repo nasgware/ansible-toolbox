@@ -1,5 +1,5 @@
 ---
-name: Test Linux Python 3.8
+name: Test Linux Python 3.9
 
 on:
   pull_request:
@@ -17,5 +17,5 @@ jobs:
     uses: ./.github/workflows/test-suite-template.yml
     with:
       os-flavors: '["ubuntu-latest"]' 
-      python-versions: '["3.8"]'
+      python-versions: '["3.9"]'
       

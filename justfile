@@ -4,7 +4,7 @@
 ensure-pdm:
     #!/usr/bin/env sh
     if ! command -v python >/dev/null 2>&1; then
-        echo "pyhton must be available in the path"
+        echo "python must be available in the path"
         exit 1
     fi
 
