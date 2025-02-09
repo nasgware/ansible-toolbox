@@ -107,4 +107,4 @@ with your use case,
 
 ## Contributing
 
-Feel free to fork, open pull requests and contribute.
+~~Feel free to fork, open pull requests and contribute.~~
