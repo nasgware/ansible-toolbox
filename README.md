@@ -104,6 +104,7 @@ with your use case,
 - [ ] Support for diferent images
 - [ ] Diff images, when content of the newly created image changes
 - [ ] Support for podman
+- [ ] Windows support (maybe)
 
 ## Contributing
 
