@@ -6,7 +6,11 @@
 
 Simple ansible-playbook runner to execute playbooks in a (docker) container, easy to use, promoting isolation, portability, reproducibility, optimal to integrate in CI/CD pipelines.
 
-### Features
+## Why?
+
+Managing multiple versions of Ansible, Python, and their dependencies can be complex and challenging, potentially causing conflicts and clutter in the orchestrator environment. The ansible-toolbox offers an efficient solution by allowing you to encapsulate these environments within a container, thereby maintaining a clean and organized system.
+
+## Features
 - Lightweight
 - Zero dependencies (uses only Python's standard library)
 - Compatible with Python 3.9 to 3.13
@@ -37,6 +41,8 @@ After you have installed ansible-toolbox, jump back the terminal, and create a s
 ```
 
 Now that you have everything in place, issue the following command,
+
+⚠️ `at` is yet another linux command, so if you actually use `at` you may get in trouble.
 
 ```console
 $ at ansible-playbook playbook.yaml
