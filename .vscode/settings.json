@@ -11,5 +11,6 @@
     "python.defaultInterpreterPath": ".venv/bin/python",
     "python.testing.cwd": "${workspaceFolder}",
     "python.testing.pytestPath": "pdm",
-    "mypy.configFile": "mypy.ini"
+    "mypy.configFile": "mypy.ini",
+    "ansible.python.interpreterPath": "/home/user/projects/ansible-toolbox/.venv/bin/python"
 }

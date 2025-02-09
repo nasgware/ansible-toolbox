@@ -25,7 +25,6 @@ exclude = [
     "node_modules",
     "site-packages",
     "venv",
-    "tests",
 ]
 
 line-length = 75
@@ -50,6 +49,7 @@ ignore = [
     "S101",
     "S108",
     "D104",
+    "CPY001",
 ]
 
 # Allow fix for all enabled rules (when `--fix`) is provided.
