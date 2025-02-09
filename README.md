@@ -38,8 +38,6 @@ After you have installed ansible-toolbox, jump back the terminal, and create a s
 
 Now that you have everything in place, issue the following command,
 
-:warning: Warning: the 
-
 ```console
 $ at ansible-playbook playbook.yaml
 Ansible Toolbox Docker image not found. Building...
