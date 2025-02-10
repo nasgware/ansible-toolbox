@@ -90,8 +90,8 @@ with your use case,
 
 | Flag/Option           | Description                                                              |
 | --------------------- | ------------------------------------------------------------------------ |
-| `--at-help`           | Show this help message and exit.                                         |
 | `command`             | The Ansible command to run. This can be any valid Ansible CLI command.   |
+| `--at-help`           | Show this help message and exit.                                         |
 | `--at-i`              | Run in interactive mode.                                                 |
 | `--at-add-py-package` | Add additional Python packages to the toolbox. Multiple entries allowed. |
 | `--at-volume`         | Add additional volumes to mount. Multiple entries allowed.               |
