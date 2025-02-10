@@ -4,11 +4,11 @@
 
 ## What is this?
 
-Simple ansible runner to execute playbooks in a (docker) container, easy to use, promoting isolation, portability, reproducibility, optimal to integrate in CI/CD pipelines.
+Simple ansible runner to execute playbooks in a container, easy to use, promoting isolation, portability, reproducibility, optimal to integrate in CI/CD pipelines.
 
 ## Why?
 
-Managing multiple versions of Ansible, Python, and their dependencies can be complex and challenging, potentially causing conflicts and clutter in the orchestrator environment. The ansible-toolbox offers an efficient solution by allowing you to encapsulate these environments within a container, thereby maintaining a clean and organized system.
+Managing multiple versions of Ansible, Python, and their dependencies can be complex and challenging, potentially causing conflicts and clutter in the orchestrator environment. The ansible-toolbox offers an efficient solution by allowing you to condense these complexity within a container, and running ansible playbooks easily, thereby maintaining a clean and organized systems.
 
 ## Features
 - Lightweight
@@ -98,7 +98,6 @@ with your use case,
 | `--at-env`            | Add additional environment variables. Multiple entries allowed.          |
 
 ## TODO
-- [ ] Support for remote docker engines
 - [ ] Custom dockerfiles
 - [ ] Support for ansible-galaxy dependencies
 - [ ] Support for diferent images
