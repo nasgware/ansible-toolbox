@@ -5,7 +5,7 @@
 groups = ["default", "dev"]
 strategy = ["cross_platform"]
 lock_version = "4.4"
-content_hash = "sha256:55ac0c7d12ece8b04d4615ba8b38a869123b88cf1645ccea374dff68fbb8eb8e"
+content_hash = "sha256:916227f34deadaed2954abdd51144402438f800b7b18dddf24c6cbf057214f15"
 
 [[package]]
 name = "arrow"
