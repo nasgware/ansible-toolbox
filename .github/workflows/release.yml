@@ -5,7 +5,7 @@ on:
   push:
     branches: [ "main" ]
     paths:
-      - 'src/ansible_toolbox'
+      - 'src/ansible_toolbox/**'
       - 'pyproject.toml'
 
 permissions:
