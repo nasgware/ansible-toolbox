@@ -96,19 +96,19 @@ class DockerRunner(ContainerRunnerProtocol):
         """Build Docker image from Dockerfile."""
         logger.info("Building Docker image %s...", image_name)
 
+        # fmt: off
         result = subprocess.run(  # noqa: S603
             [
                 self._binary,
                 "build",
-                "-t",
-                image_name,
-                "-f",
-                dockerfile_path,
+                "-t", image_name,
+                "-f", dockerfile_path,
                 ".",
             ],
             check=False,
         )
-
+        # fmt: on
+        
         if result.returncode != 0:
             msg = "Failed to build Docker image"
             raise RuntimeError(msg)
