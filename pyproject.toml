@@ -4,7 +4,7 @@ version = "0.1.0"
 description = "Run Ansible Playbooks from a docker container"
 authors = [{ name = "Nuno Goncalves", email = "nunog@nasgware.com" }]
 maintainers = [{ name = "Nuno Goncalves", email = "nunog@nasgware.com" }]
-dependencies = []
+dependencies = ["python-semantic-release>=9.19.1"]
 requires-python = ">=3.9"
 readme = "README.md"
 license = { text = "MIT" }
