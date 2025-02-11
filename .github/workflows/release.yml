@@ -4,9 +4,9 @@ name: Release
 on:
   push:
     branches: [ "main" ]
-    # paths:
-    #   - 'src/ansible_toolbox'
-    #   - 'pyproject.toml'
+    paths:
+      - 'src/ansible_toolbox'
+      - 'pyproject.toml'
 
 permissions:
   contents: write
